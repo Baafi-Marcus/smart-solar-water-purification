@@ -63,6 +63,12 @@ module.exports = (req, res) => {
                 addAlert('info', 'Mode Changed', `Operating mode changed to ${mode}.`);
                 break;
 
+            case 'chlorine':
+                const { dosage } = req.body;
+                addCommand('chlorine', { dosage: dosage || 0.5 });
+                addAlert('success', 'Chlorine Dosing Triggered', `Chlorine dosing (${dosage || 0.5} mg/L) initiated.`);
+                break;
+
             default:
                 res.status(400).json({
                     error: 'Bad request',

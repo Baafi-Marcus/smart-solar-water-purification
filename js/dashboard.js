@@ -27,6 +27,7 @@ class Dashboard {
         // Control buttons
         document.getElementById('startBtn').addEventListener('click', () => this.handleStart());
         document.getElementById('stopBtn').addEventListener('click', () => this.handleStop());
+        document.getElementById('chlorineBtn').addEventListener('click', () => this.handleChlorineDose());
         document.getElementById('refreshBtn').addEventListener('click', () => this.loadStatus());
 
         // Mode toggle
@@ -208,6 +209,22 @@ class Dashboard {
         } catch (error) {
             console.error('Stop command failed:', error);
             this.showFeedback('Failed to send stop command', 'error');
+        }
+    }
+
+    async handleChlorineDose() {
+        try {
+            this.showFeedback('Initiating chlorine dosing...', 'info');
+            const response = await api.sendCommand('chlorine', { dosage: 0.5 }); // Default 0.5 mg/L
+
+            if (response.success) {
+                this.showFeedback('Chlorine dosing command sent', 'success');
+            } else {
+                this.showFeedback('Failed to initiate dosing', 'error');
+            }
+        } catch (error) {
+            console.error('Chlorine dose command failed:', error);
+            this.showFeedback('Failed to send dosing command', 'error');
         }
     }
 

@@ -38,6 +38,13 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 #define WATER_LEVEL_PIN 35 // D35
 #define VOLTAGE_PIN 32     // D32
 #define PUMP_PIN 5          // D5
+#define CHLORINE_PUMP_PIN 17 // D17 (New for chlorine dosing)
+
+// Dosing Configuration (Based on DGS-175 and 100mL/min pump)
+const float TANK_VOLUME_L = 20.0;       // Volume of water to treat
+const float TARGET_RESIDUAL_MGL = 0.5;  // Required mg/L per DGS-175
+const float SOURCE_CONC_MGL = 50000.0;  // 5% Chlorine solution
+const float PUMP_FLOW_ML_MIN = 100.0;   // Pump flow rate
 
 // Timing
 unsigned long lastUpload = 0;
@@ -53,6 +60,8 @@ void setup() {
   // Initialize pins
   pinMode(PUMP_PIN, OUTPUT);
   digitalWrite(PUMP_PIN, LOW);
+  pinMode(CHLORINE_PUMP_PIN, OUTPUT);
+  digitalWrite(CHLORINE_PUMP_PIN, LOW);
 
   // Connect to Wi-Fi
   connectWiFi();
@@ -256,6 +265,7 @@ void executeCommand(String command, JsonObject params) {
   if (command == "start") {
     Serial.println("Starting purification...");
     digitalWrite(PUMP_PIN, HIGH);
+    doseChlorine(TARGET_RESIDUAL_MGL); // Automatically dose chlorine on start
 
   } else if (command == "stop") {
     Serial.println("Stopping purification...");
@@ -267,10 +277,41 @@ void executeCommand(String command, JsonObject params) {
     Serial.println(mode);
     // Implement mode change logic
 
+  } else if (command == "chlorine") {
+    float dosage = params.containsKey("dosage") ? params["dosage"].as<float>() : TARGET_RESIDUAL_MGL;
+    doseChlorine(dosage);
+
   } else {
     Serial.print("Unknown command: ");
     Serial.println(command);
   }
+}
+
+void doseChlorine(float targetMgL) {
+  Serial.print("Dosing chlorine for ");
+  Serial.print(targetMgL);
+  Serial.println(" mg/L residual...");
+
+  // Calculation:
+  // mass_needed (mg) = target_mgL * tank_volume_L
+  // vol_needed (mL) = mass_needed / source_conc_mgL * 1000
+  // time_ms = (vol_needed / flow_rate_mL_min) * 60 * 1000
+
+  float massNeeded = targetMgL * TANK_VOLUME_L;
+  float volNeeded = (massNeeded / SOURCE_CONC_MGL) * 1000.0;
+  unsigned long durationMs = (volNeeded / PUMP_FLOW_ML_MIN) * 60.0 * 1000.0;
+
+  Serial.print("Pumping ");
+  Serial.print(volNeeded, 4);
+  Serial.print(" mL for ");
+  Serial.print(durationMs);
+  Serial.println(" ms.");
+
+  digitalWrite(CHLORINE_PUMP_PIN, HIGH);
+  delay(durationMs);
+  digitalWrite(CHLORINE_PUMP_PIN, LOW);
+
+  Serial.println("Dosing complete.");
 }
 
 // ========================================
