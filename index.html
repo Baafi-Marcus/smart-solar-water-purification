@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smart Solar-Powered Water Purification System - IoT Dashboard for remote monitoring and control">
+  <title>Dashboard - Smart Solar Water Purification</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container navbar-content">
+      <a href="index.html" class="navbar-brand">
+        <svg class="navbar-brand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Smart Solar Purification</span>
+      </a>
+      
+      <ul class="navbar-nav">
+        <li><a href="index.html" class="nav-link active">Dashboard</a></li>
+        <li><a href="monitoring.html" class="nav-link">Monitoring</a></li>
+        <li><a href="alerts.html" class="nav-link">Alerts</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Page Header -->
+      <div class="mb-xl">
+        <h1>System Dashboard</h1>
+        <p>Monitor and control your solar-powered water purification system</p>
+      </div>
+
+      <!-- System Status Section -->
+      <div class="grid grid-2 mb-xl">
+        <!-- Main Status Display -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">System Status</h3>
+            <span id="lastUpdated" class="text-sm" style="color: var(--color-text-tertiary);">Loading...</span>
+          </div>
+          <div class="card-body">
+            <div id="statusDisplay" class="status-display status-display-idle">
+              <svg class="status-display-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <div id="statusLabel" class="status-display-label">IDLE</div>
+              <p id="statusMessage" style="color: var(--color-text-secondary); margin: 0;">System ready</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Battery Level -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Battery Level</h3>
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <div class="card-body text-center">
+            <div class="progress-circle">
+              <svg class="progress-circle-svg" width="120" height="120">
+                <circle class="progress-circle-bg" cx="60" cy="60" r="52"></circle>
+                <circle id="batteryCircle" class="progress-circle-fill" cx="60" cy="60" r="52" 
+                        stroke-dasharray="326.73" stroke-dashoffset="326.73"></circle>
+              </svg>
+              <div id="batteryText" class="progress-circle-text">0%</div>
+            </div>
+            <div class="mt-md">
+              <span id="batteryStatus" class="status-badge status-badge-success">
+                <span class="status-dot status-dot-success"></span>
+                Good
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-3 mb-xl">
+        <!-- Water Quality -->
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title" style="font-size: var(--font-size-base); margin: 0;">Water Quality</h4>
+          </div>
+          <div class="card-body text-center">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto var(--space-md); color: var(--color-primary);">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span id="waterQualityBadge" class="status-badge status-badge-success">Good</span>
+          </div>
+        </div>
+
+        <!-- Water Level -->
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title" style="font-size: var(--font-size-base); margin: 0;">Water Level</h4>
+          </div>
+          <div class="card-body text-center">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto var(--space-md); color: var(--color-primary);">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+            <span id="waterLevelBadge" class="status-badge status-badge-success">Normal</span>
+          </div>
+        </div>
+
+        <!-- Operating Mode -->
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title" style="font-size: var(--font-size-base); margin: 0;">Operating Mode</h4>
+          </div>
+          <div class="card-body text-center">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto var(--space-md); color: var(--color-primary);">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <label class="toggle-switch">
+              <input type="checkbox" id="modeToggle" class="toggle-switch-input" checked>
+              <span class="toggle-switch-slider"></span>
+            </label>
+            <div class="mt-sm">
+              <span id="modeLabel" style="font-weight: 600; color: var(--color-text-primary);">Auto Mode</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Control Panel</h3>
+          <span class="status-badge status-badge-info">
+            <span class="status-dot status-dot-info"></span>
+            Remote Control Active
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="flex flex-center gap-lg" style="flex-wrap: wrap;">
+            <button id="startBtn" class="btn btn-success btn-lg">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Start Purification
+            </button>
+            
+            <button id="stopBtn" class="btn btn-error btn-lg" disabled>
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+              </svg>
+              Stop Purification
+            </button>
+            
+            <button id="refreshBtn" class="btn btn-outline btn-lg">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Refresh Status
+            </button>
+          </div>
+          
+          <!-- Feedback Message -->
+          <div id="feedbackMessage" class="mt-lg" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
