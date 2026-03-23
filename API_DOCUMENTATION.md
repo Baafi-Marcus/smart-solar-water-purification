@@ -30,7 +30,6 @@ The backend API is built using **Node.js Serverless Functions** deployed on Verc
   "waterLevel": "normal",
   "mode": "auto",
   "turbidity": 3.2,
-  "tds": 245,
   "ph": 7.2,
   "batteryVoltage": 12.4,
   "pumpStatus": "off",
@@ -110,7 +109,6 @@ The backend API is built using **Node.js Serverless Functions** deployed on Verc
 ```json
 {
   "turbidity": 3.2,
-  "tds": 245,
   "ph": 7.2,
   "batteryVoltage": 12.4,
   "batteryLevel": 75,
@@ -191,7 +189,6 @@ Alerts are automatically generated when:
 | Battery < 20% | `error` | Critical Battery Level |
 | Battery < 40% | `warning` | Low Battery |
 | Turbidity > 10 NTU | `error` | Water Quality Issue |
-| TDS > 500 ppm | `warning` | High TDS |
 | pH < 6.0 or > 9.0 | `error` | pH Out of Range |
 | pH < 6.5 or > 8.5 | `warning` | pH Warning |
 | Water Level = "low" | `warning` | Low Water Level |
@@ -257,7 +254,7 @@ curl http://localhost:3000/api/logs
 # Upload sensor data (simulate ESP32)
 curl -X POST http://localhost:3000/api/upload \
   -H "Content-Type: application/json" \
-  -d '{"turbidity":3.2,"tds":245,"ph":7.2,"batteryLevel":75}'
+  -d '{"turbidity":3.2,"ph":7.2,"batteryLevel":75}'
 
 # Fetch commands (simulate ESP32)
 curl http://localhost:3000/api/fetch

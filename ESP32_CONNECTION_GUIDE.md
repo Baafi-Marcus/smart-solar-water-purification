@@ -18,7 +18,6 @@ Your backend API is live at:
 ### Hardware
 - ✅ ESP32 Development Board
 - ✅ Turbidity Sensor
-- ✅ TDS Sensor
 - ✅ pH Sensor
 - ✅ Water Level Sensor
 - ✅ Voltage Sensor (for battery monitoring)
@@ -89,7 +88,6 @@ const char* apiBaseUrl = "https://smart-solar-water-purification.vercel.app";  /
 | Component | ESP32 Pin | Notes |
 |-----------|-----------|-------|
 | Turbidity Sensor | GPIO 36 (A0) | Analog input |
-| TDS Sensor | GPIO 39 (A1) | Analog input |
 | pH Sensor | GPIO 34 (A2) | Analog input |
 | Water Level Sensor | GPIO 35 (A3) | Analog input |
 | Voltage Sensor | GPIO 32 (A4) | Analog input (battery) |
@@ -104,7 +102,6 @@ ESP32                    Sensors/Actuators
 ┌─────────────┐
 │             │
 │  GPIO 36 ───┼──→ Turbidity Sensor
-│  GPIO 39 ───┼──→ TDS Sensor
 │  GPIO 34 ───┼──→ pH Sensor
 │  GPIO 35 ───┼──→ Water Level Sensor
 │  GPIO 32 ───┼──→ Voltage Sensor (Battery)
@@ -264,7 +261,6 @@ digitalWrite(PUMP_PIN, LOW);
 2. ESP32 → POST /api/upload
    {
      "turbidity": 3.2,
-     "tds": 245,
      "ph": 7.2,
      "batteryLevel": 75,
      ...
@@ -301,17 +297,8 @@ float voltage = analogRead(TURBIDITY_PIN) * (3.3 / 4095.0);
 float turbidity = -1120.4 * voltage * voltage + 5742.3 * voltage - 4352.9;
 ```
 
-### TDS Sensor
-```cpp
-// Typical range: 0-1000 ppm
-// Pure water: < 50 ppm
-// Drinking water: 50-300 ppm
-
-float voltage = analogRead(TDS_PIN) * (3.3 / 4095.0);
-float tds = (133.42 * voltage * voltage * voltage - 255.86 * voltage * voltage + 857.39 * voltage) * 0.5;
-```
-
-### pH Sensor
+// Neutral: 7.0 pH
+// Safe drinking: 6.5-8.5 pH
 ```cpp
 // Range: 0-14 pH
 // Neutral: 7.0 pH

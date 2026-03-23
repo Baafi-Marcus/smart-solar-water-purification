@@ -8,7 +8,6 @@ const store = {
     // Latest sensor data from ESP32
     sensorData: {
         turbidity: 0,
-        tds: 0,
         ph: 7.0,
         batteryVoltage: 12.0,
         batteryLevel: 0,
@@ -33,7 +32,6 @@ const store = {
     // Thresholds for alert generation
     thresholds: {
         turbidity: { good: 5, warning: 10 },
-        tds: { good: 300, warning: 500 },
         ph: { min_good: 6.5, max_good: 8.5, min_warning: 6.0, max_warning: 9.0 },
         battery: { low: 20, warning: 40 }
     }
@@ -131,13 +129,6 @@ function checkThresholdsAndGenerateAlerts(data) {
             updateSystemStatus({ waterQuality: 'not_safe' });
         } else if (data.turbidity > thresholds.turbidity.good) {
             addAlert('warning', 'Turbidity Warning', `Turbidity is ${data.turbidity} NTU (elevated).`);
-        }
-    }
-
-    // Check TDS
-    if (data.tds !== undefined) {
-        if (data.tds > thresholds.tds.warning) {
-            addAlert('warning', 'High TDS', `Total Dissolved Solids at ${data.tds} ppm (high).`);
         }
     }
 

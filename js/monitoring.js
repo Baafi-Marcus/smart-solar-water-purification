@@ -75,7 +75,6 @@ class Monitoring {
 
     updateUI(data) {
         this.updateTurbidity(data.turbidity);
-        this.updateTDS(data.tds);
         this.updatePH(data.ph);
         this.updateBatteryVoltage(data.batteryVoltage);
         this.updatePumpStatus(data.pumpStatus);
@@ -99,27 +98,6 @@ class Monitoring {
         } else {
             statusEl.classList.add('status-badge-error');
             statusEl.textContent = 'Poor';
-        }
-    }
-
-    updateTDS(value) {
-        const valueEl = document.getElementById('tdsValue');
-        const statusEl = document.getElementById('tdsStatus');
-
-        valueEl.textContent = value;
-
-        // Update status based on thresholds
-        statusEl.classList.remove('status-badge-success', 'status-badge-warning', 'status-badge-error');
-
-        if (value < CONFIG.THRESHOLDS.TDS.GOOD) {
-            statusEl.classList.add('status-badge-success');
-            statusEl.textContent = 'Good';
-        } else if (value < CONFIG.THRESHOLDS.TDS.WARNING) {
-            statusEl.classList.add('status-badge-warning');
-            statusEl.textContent = 'Fair';
-        } else {
-            statusEl.classList.add('status-badge-error');
-            statusEl.textContent = 'High';
         }
     }
 

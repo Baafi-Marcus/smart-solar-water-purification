@@ -43,7 +43,6 @@ module.exports = (req, res) => {
         // Determine water quality based on sensor readings
         let waterQuality = 'good';
         if (sensorData.turbidity > 10 ||
-            sensorData.tds > 500 ||
             sensorData.ph < 6.0 ||
             sensorData.ph > 9.0) {
             waterQuality = 'not_safe';

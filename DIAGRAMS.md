@@ -43,7 +43,6 @@ graph TB
     
     subgraph "Sensor Layer"
         F1[Turbidity Sensor]
-        F2[TDS Sensor]
         F3[pH Sensor]
         F4[Water Level Sensor]
         F5[Voltage Sensor]
@@ -60,7 +59,6 @@ graph TB
     B -->|API Calls| C
     E1 <-->|HTTP/REST| C
     E --> F1
-    E --> F2
     E --> F3
     E --> F4
     E --> F5
@@ -107,7 +105,7 @@ sequenceDiagram
     
     Note over U,S: Sensor Data Upload
     S->>ESP: Read sensor values
-    ESP->>API: POST /api/upload {turbidity, tds, ph, ...}
+    ESP->>API: POST /api/upload {turbidity, ph, ...}
     API->>DB: Update sensor data
     API->>API: Check thresholds & generate alerts
     API->>DB: Store alerts if needed
@@ -153,7 +151,6 @@ graph LR
     subgraph "Monitoring Page"
         M1[View Real-time Sensors]
         M2[Turbidity Display]
-        M3[TDS Display]
         M4[pH Display]
         M5[Battery Voltage]
         M6[Pump Status]
@@ -232,7 +229,7 @@ graph TB
     subgraph Field["🏭 Field Location"]
         direction TB
         ESP[🤖 ESP32<br/>Microcontroller]
-        SENSORS[📊 Sensors<br/>Turbidity/TDS/pH]
+        SENSORS[📊 Sensors<br/>Turbidity/pH]
         PUMP[💧 Water Pump]
         SOLAR[☀️ Solar Battery]
         

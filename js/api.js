@@ -26,7 +26,6 @@ class API {
     getMockMonitoring() {
         return {
             turbidity: 3.2,
-            tds: 245,
             ph: 7.2,
             batteryVoltage: 12.4,
             pumpStatus: 'off', // 'on', 'off'
@@ -92,7 +91,6 @@ class API {
             // Add some randomness to mock data for realistic feel
             const data = this.getMockMonitoring();
             data.turbidity = (Math.random() * 5 + 2).toFixed(1);
-            data.tds = Math.floor(Math.random() * 100 + 200);
             data.ph = (Math.random() * 1.5 + 6.5).toFixed(1);
             data.batteryVoltage = (Math.random() * 0.5 + 12).toFixed(1);
             return this.simulateDelay(data);

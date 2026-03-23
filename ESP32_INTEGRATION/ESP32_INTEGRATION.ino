@@ -33,7 +33,6 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 // Sensor pins (adjust based on your hardware)
 // Sensor pins (Actual GPIO mapping for ESP32)
 #define TURBIDITY_PIN 36   // VP
-#define TDS_PIN 39         // VN
 #define PH_PIN 34          // D34
 #define WATER_LEVEL_PIN 35 // D35
 #define VOLTAGE_PIN 32     // D32
@@ -84,7 +83,6 @@ void loop() {
 
     // Read sensors
     float turbidity = readTurbidity();
-    int tds = readTDS();
     float ph = readPH();
     float batteryVoltage = readBatteryVoltage();
     int batteryLevel = calculateBatteryLevel(batteryVoltage);
@@ -92,7 +90,7 @@ void loop() {
     String pumpStatus = digitalRead(PUMP_PIN) ? "on" : "off";
 
     // Upload to backend
-    uploadSensorData(turbidity, tds, ph, batteryVoltage, batteryLevel,
+    uploadSensorData(turbidity, ph, batteryVoltage, batteryLevel,
                      waterLevel, pumpStatus);
 
     // Check for commands
@@ -141,14 +139,6 @@ float readTurbidity() {
   return turbidity;
 }
 
-int readTDS() {
-  // Read TDS sensor (ppm)
-  int sensorValue = analogRead(TDS_PIN);
-  float voltage = sensorValue * (3.3 / 4095.0);
-  int tds = voltage * 100; // Example conversion
-  return tds;
-}
-
 float readPH() {
   // Read pH sensor
   int sensorValue = analogRead(PH_PIN);
@@ -180,7 +170,7 @@ int calculateBatteryLevel(float voltage) {
 // API COMMUNICATION
 // ========================================
 
-void uploadSensorData(float turbidity, int tds, float ph, float batteryVoltage,
+void uploadSensorData(float turbidity, float ph, float batteryVoltage,
                       int batteryLevel, String waterLevel, String pumpStatus) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Cannot upload: No Wi-Fi connection");
@@ -196,7 +186,6 @@ void uploadSensorData(float turbidity, int tds, float ph, float batteryVoltage,
   // Create JSON payload
   StaticJsonDocument<512> doc;
   doc["turbidity"] = turbidity;
-  doc["tds"] = tds;
   doc["ph"] = ph;
   doc["batteryVoltage"] = batteryVoltage;
   doc["batteryLevel"] = batteryLevel;
@@ -325,7 +314,6 @@ void doseChlorine(float targetMgL) {
  *
  * HARDWARE CONNECTIONS:
  * - Turbidity Sensor → A0
- * - TDS Sensor → A1
  * - pH Sensor → A2
  * - Water Level Sensor → A3
  * - Voltage Sensor → A4
