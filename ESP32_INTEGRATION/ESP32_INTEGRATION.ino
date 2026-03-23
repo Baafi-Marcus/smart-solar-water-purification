@@ -265,7 +265,6 @@ void executeCommand(String command, JsonObject params) {
   if (command == "start") {
     Serial.println("Starting purification...");
     digitalWrite(PUMP_PIN, HIGH);
-    doseChlorine(TARGET_RESIDUAL_MGL); // Automatically dose chlorine on start
 
   } else if (command == "stop") {
     Serial.println("Stopping purification...");
