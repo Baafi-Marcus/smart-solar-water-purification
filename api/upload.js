@@ -49,9 +49,9 @@ module.exports = (req, res) => {
         }
         updateSystemStatus({ waterQuality });
 
-        // Check if purification completed (pump turned off after being on)
+        // Check if purification completed (Relay 2 cycle complete or dirty empty)
         // This would need more sophisticated state tracking in production
-        if (sensorData.pumpStatus === 'off' && sensorData.turbidity < 5) {
+        if (sensorData.relay1Status === 'off' && sensorData.relay2Status === 'off' && sensorData.turbidity < 5) {
             // Potentially purification completed
             // In production, you'd track previous state
         }

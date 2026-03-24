@@ -58,7 +58,7 @@ class Dashboard {
         this.updateSystemStatus(status.systemStatus);
         this.updateBatteryLevel(status.batteryLevel);
         this.updateWaterQuality(status.waterQuality);
-        this.updateWaterLevel(status.waterLevel);
+        this.updateWaterLevel(status.waterSensor1);
         this.updateMode(status.mode);
         this.updateControlButtons(status.systemStatus);
     }
@@ -138,7 +138,7 @@ class Dashboard {
         const badge = document.getElementById('waterLevelBadge');
         badge.classList.remove('status-badge-success', 'status-badge-warning');
 
-        if (level === 'normal') {
+        if (level === undefined || level > CONFIG.THRESHOLDS.WATER_SENSOR.LOW) {
             badge.classList.add('status-badge-success');
             badge.textContent = 'Normal';
         } else {

@@ -18,7 +18,6 @@
 #include <HTTPClient.h>
 #include <WiFi.h>
 
-
 // ========================================
 // CONFIGURATION
 // ========================================
@@ -32,18 +31,24 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 
 // Sensor pins (adjust based on your hardware)
 // Sensor pins (Actual GPIO mapping for ESP32)
-#define TURBIDITY_PIN 36   // VP
-#define PH_PIN 34          // D34
-#define WATER_LEVEL_PIN 35 // D35
-#define VOLTAGE_PIN 32     // D32
-#define PUMP_PIN 5          // D5
+#define TURBIDITY_PIN 35     // D35
+#define PH_PIN 34            // D34
+#define WATER_SENSOR1_PIN 5  // D5 (Dirty container level)
+#define WATER_SENSOR2_PIN 18 // D18 (Clean container level)
+#define VOLTAGE_PIN 32       // D32
+#define RELAY1_PIN 14        // D14 (Dirty to Filter Pump)
+#define RELAY2_PIN 27        // D27 (Filter to Clean Pump)
 #define CHLORINE_PUMP_PIN 17 // D17 (New for chlorine dosing)
 
+// Pumping Logic State
+unsigned long relay2Timer = 0;
+bool relay2State = false;
+
 // Dosing Configuration (Based on DGS-175 and 100mL/min pump)
-const float TANK_VOLUME_L = 20.0;       // Volume of water to treat
-const float TARGET_RESIDUAL_MGL = 0.5;  // Required mg/L per DGS-175
-const float SOURCE_CONC_MGL = 50000.0;  // 5% Chlorine solution
-const float PUMP_FLOW_ML_MIN = 100.0;   // Pump flow rate
+const float TANK_VOLUME_L = 20.0;      // Volume of water to treat
+const float TARGET_RESIDUAL_MGL = 0.5; // Required mg/L per DGS-175
+const float SOURCE_CONC_MGL = 50000.0; // 5% Chlorine solution
+const float PUMP_FLOW_ML_MIN = 100.0;  // Pump flow rate
 
 // Timing
 unsigned long lastUpload = 0;
@@ -57,8 +62,10 @@ void setup() {
   Serial.begin(115200);
 
   // Initialize pins
-  pinMode(PUMP_PIN, OUTPUT);
-  digitalWrite(PUMP_PIN, LOW);
+  pinMode(RELAY1_PIN, OUTPUT);
+  digitalWrite(RELAY1_PIN, LOW);
+  pinMode(RELAY2_PIN, OUTPUT);
+  digitalWrite(RELAY2_PIN, LOW);
   pinMode(CHLORINE_PUMP_PIN, OUTPUT);
   digitalWrite(CHLORINE_PUMP_PIN, LOW);
 
@@ -77,6 +84,30 @@ void loop() {
     connectWiFi();
   }
 
+  // ===== WATER TRANSFER LOGIC =====
+  int ws1Value = analogRead(WATER_SENSOR1_PIN);
+  int ws2Value = analogRead(WATER_SENSOR2_PIN);
+
+  if (ws1Value > 2000) { 
+    // Water in dirty container -> Pump to filter
+    digitalWrite(RELAY1_PIN, HIGH);
+    
+    // Stop Relay 2 while Relay 1 is pumping
+    digitalWrite(RELAY2_PIN, LOW);
+    relay2State = false;
+  } else {
+    // Dirty container empty -> Relay 1 OFF
+    digitalWrite(RELAY1_PIN, LOW);
+
+    // Relay 2 pumps every 10 seconds (10s ON, 10s OFF cycle)
+    unsigned long currentMillis = millis();
+    if (currentMillis - relay2Timer >= 10000) {
+      relay2Timer = currentMillis;
+      relay2State = !relay2State; // Toggle state
+      digitalWrite(RELAY2_PIN, relay2State ? HIGH : LOW);
+    }
+  }
+
   // Upload sensor data every 5 seconds
   if (millis() - lastUpload >= uploadInterval) {
     lastUpload = millis();
@@ -86,12 +117,13 @@ void loop() {
     float ph = readPH();
     float batteryVoltage = readBatteryVoltage();
     int batteryLevel = calculateBatteryLevel(batteryVoltage);
-    String waterLevel = readWaterLevel();
-    String pumpStatus = digitalRead(PUMP_PIN) ? "on" : "off";
+    
+    String relay1Status = digitalRead(RELAY1_PIN) ? "on" : "off";
+    String relay2Status = digitalRead(RELAY2_PIN) ? "on" : "off";
 
     // Upload to backend
-    uploadSensorData(turbidity, ph, batteryVoltage, batteryLevel,
-                     waterLevel, pumpStatus);
+    uploadSensorData(turbidity, ph, batteryVoltage, batteryLevel, ws1Value,
+                     ws2Value, relay1Status, relay2Status);
 
     // Check for commands
     checkForCommands();
@@ -147,11 +179,7 @@ float readPH() {
   return ph;
 }
 
-String readWaterLevel() {
-  // Read water level sensor
-  int sensorValue = analogRead(WATER_LEVEL_PIN);
-  return (sensorValue > 2000) ? "normal" : "low";
-}
+// We replaced string based water level with direct analog reads previously.
 
 float readBatteryVoltage() {
   // Read battery voltage
@@ -171,7 +199,7 @@ int calculateBatteryLevel(float voltage) {
 // ========================================
 
 void uploadSensorData(float turbidity, float ph, float batteryVoltage,
-                      int batteryLevel, String waterLevel, String pumpStatus) {
+                      int batteryLevel, int ws1, int ws2, String relay1Status, String relay2Status) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Cannot upload: No Wi-Fi connection");
     return;
@@ -189,8 +217,10 @@ void uploadSensorData(float turbidity, float ph, float batteryVoltage,
   doc["ph"] = ph;
   doc["batteryVoltage"] = batteryVoltage;
   doc["batteryLevel"] = batteryLevel;
-  doc["waterLevel"] = waterLevel;
-  doc["pumpStatus"] = pumpStatus;
+  doc["waterSensor1"] = ws1;
+  doc["waterSensor2"] = ws2;
+  doc["relay1Status"] = relay1Status;
+  doc["relay2Status"] = relay2Status;
 
   String jsonString;
   serializeJson(doc, jsonString);
@@ -252,12 +282,12 @@ void checkForCommands() {
 
 void executeCommand(String command, JsonObject params) {
   if (command == "start") {
-    Serial.println("Starting purification...");
-    digitalWrite(PUMP_PIN, HIGH);
+    Serial.println("Manual override: Starting Relay 1...");
+    digitalWrite(RELAY1_PIN, HIGH);
 
   } else if (command == "stop") {
-    Serial.println("Stopping purification...");
-    digitalWrite(PUMP_PIN, LOW);
+    Serial.println("Manual override: Stopping Relay 1...");
+    digitalWrite(RELAY1_PIN, LOW);
 
   } else if (command == "mode") {
     String mode = params["mode"];
@@ -266,7 +296,8 @@ void executeCommand(String command, JsonObject params) {
     // Implement mode change logic
 
   } else if (command == "chlorine") {
-    float dosage = params.containsKey("dosage") ? params["dosage"].as<float>() : TARGET_RESIDUAL_MGL;
+    float dosage = params.containsKey("dosage") ? params["dosage"].as<float>()
+                                                : TARGET_RESIDUAL_MGL;
     doseChlorine(dosage);
 
   } else {
@@ -313,11 +344,13 @@ void doseChlorine(float targetMgL) {
  * - ArduinoJson (install via Library Manager)
  *
  * HARDWARE CONNECTIONS:
- * - Turbidity Sensor → A0
- * - pH Sensor → A2
- * - Water Level Sensor → A3
- * - Voltage Sensor → A4
- * - Water Pump Relay → GPIO 5
+ * - Turbidity Sensor → GPIO 35
+ * - pH Sensor → GPIO 34
+ * - Water Sensor 1 → GPIO 5
+ * - Water Sensor 2 → GPIO 18
+ * - Voltage Sensor → GPIO 32
+ * - Relay 1 (Pump 1) → GPIO 14
+ * - Relay 2 (Pump 2) → GPIO 27
  *
  * DEPLOYMENT STEPS:
  * 1. Update Wi-Fi credentials (ssid, password)

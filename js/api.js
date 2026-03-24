@@ -17,7 +17,7 @@ class API {
             systemStatus: 'idle', // 'idle', 'purifying', 'alert'
             batteryLevel: 75,
             waterQuality: 'good', // 'good', 'not_safe'
-            waterLevel: 'normal', // 'normal', 'low'
+            waterSensor1: 1500, // Analog read > 1000 is Normal
             mode: 'auto', // 'auto', 'manual'
             lastUpdated: new Date().toISOString()
         };
@@ -28,7 +28,8 @@ class API {
             turbidity: 3.2,
             ph: 7.2,
             batteryVoltage: 12.4,
-            pumpStatus: 'off', // 'on', 'off'
+            relay1Status: 'off',
+            relay2Status: 'off',
             lastUpdated: new Date().toISOString()
         };
     }

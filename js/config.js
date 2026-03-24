@@ -30,6 +30,10 @@ const CONFIG = {
     BATTERY: {
       LOW: 20,      // % - Below this is low
       WARNING: 40   // % - Below this is warning
+    },
+    WATER_SENSOR: {
+      LOW: 1000,
+      EMPTY: 500
     }
   },
 

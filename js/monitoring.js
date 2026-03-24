@@ -77,7 +77,8 @@ class Monitoring {
         this.updateTurbidity(data.turbidity);
         this.updatePH(data.ph);
         this.updateBatteryVoltage(data.batteryVoltage);
-        this.updatePumpStatus(data.pumpStatus);
+        this.updatePumpStatus('pump1', data.relay1Status);
+        this.updatePumpStatus('pump2', data.relay2Status);
     }
 
     updateTurbidity(value) {
@@ -147,9 +148,11 @@ class Monitoring {
         }
     }
 
-    updatePumpStatus(status) {
-        const displayEl = document.getElementById('pumpStatusDisplay');
-        const labelEl = document.getElementById('pumpStatusLabel');
+    updatePumpStatus(pumpId, status) {
+        const displayEl = document.getElementById(`${pumpId}StatusDisplay`);
+        const labelEl = document.getElementById(`${pumpId}StatusLabel`);
+
+        if (!displayEl || !labelEl) return;
 
         displayEl.classList.remove('status-display-idle', 'status-display-active');
 

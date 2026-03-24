@@ -11,8 +11,10 @@ const store = {
         ph: 7.0,
         batteryVoltage: 12.0,
         batteryLevel: 0,
-        pumpStatus: 'off',
-        waterLevel: 'normal',
+        waterSensor1: 0,
+        waterSensor2: 0,
+        relay1Status: 'off',
+        relay2Status: 'off',
         lastUpdated: new Date().toISOString()
     },
 
@@ -33,7 +35,8 @@ const store = {
     thresholds: {
         turbidity: { good: 5, warning: 10 },
         ph: { min_good: 6.5, max_good: 8.5, min_warning: 6.0, max_warning: 9.0 },
-        battery: { low: 20, warning: 40 }
+        battery: { low: 20, warning: 40 },
+        waterSensor: { low: 1000, empty: 500 } // Analog thresholds
     }
 };
 
@@ -143,9 +146,9 @@ function checkThresholdsAndGenerateAlerts(data) {
         }
     }
 
-    // Check water level
-    if (data.waterLevel === 'low') {
-        addAlert('warning', 'Low Water Level', 'Water level is low. Refill recommended.');
+    // Check water level (Dirty Container)
+    if (data.waterSensor1 !== undefined && data.waterSensor1 < thresholds.waterSensor.low) {
+        addAlert('warning', 'Low Water Level', 'The dirty water container is running low.');
     }
 }
 
