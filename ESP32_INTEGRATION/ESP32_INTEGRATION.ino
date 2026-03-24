@@ -42,8 +42,22 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 #define RELAY1_PIN 14        // D14 (Dirty to Filter Pump)
 #define RELAY2_PIN 27        // D27 (Filter to Clean Pump)
 
-#define RELAY_ON HIGH        // Standard Active HIGH
-#define RELAY_OFF LOW        // Standard Active HIGH means LOW is OFF
+// HACK FOR 3.3V ESP32 controlling 5V Active-LOW relays:
+// HIGH (3.3V) is not enough to turn off a 5V relay. We must use INPUT (High-Impedance) to turn it OFF.
+bool isRelay1On = false;
+bool isRelay2On = false;
+
+void setRelay(int pin, bool turnOn) {
+  if (pin == RELAY1_PIN) isRelay1On = turnOn;
+  if (pin == RELAY2_PIN) isRelay2On = turnOn;
+
+  if (turnOn) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW); // Pull to GND to turn ON
+  } else {
+    pinMode(pin, INPUT);    // High-Z open circuit to turn OFF
+  }
+}
 
 // Pumping Logic State
 unsigned long relay2Timer = 0;
@@ -64,11 +78,9 @@ unsigned long uploadInterval = 5000; // Upload every 5 seconds
 void setup() {
   Serial.begin(115200);
 
-  // Initialize pins
-  pinMode(RELAY1_PIN, OUTPUT);
-  digitalWrite(RELAY1_PIN, RELAY_OFF);
-  pinMode(RELAY2_PIN, OUTPUT);
-  digitalWrite(RELAY2_PIN, RELAY_OFF);
+  // Initialize pins (Turn OFF by default safely)
+  setRelay(RELAY1_PIN, false);
+  setRelay(RELAY2_PIN, false);
 
   // Configure Secure Client
   secureClient.setInsecure();
@@ -95,15 +107,15 @@ void loop() {
   if (!isSystemActive) {
     // Master Safety: User has not clicked "Start Purification" yet!
     // Force all relays OFF and ignore sensors until activated.
-    digitalWrite(RELAY1_PIN, RELAY_OFF);
-    digitalWrite(RELAY2_PIN, RELAY_OFF);
+    setRelay(RELAY1_PIN, false);
+    setRelay(RELAY2_PIN, false);
     relay2State = false;
     
   } else if (ws2Value > 2000) {
     // SYSTEM FULL: The Clean Tank has reached the maximum water level!
     // Shut off all pumps immediately to prevent overflow.
-    digitalWrite(RELAY1_PIN, RELAY_OFF);
-    digitalWrite(RELAY2_PIN, RELAY_OFF);
+    setRelay(RELAY1_PIN, false);
+    setRelay(RELAY2_PIN, false);
     relay2State = false;
     
   } else {
@@ -111,21 +123,21 @@ void loop() {
 
     if (ws1Value > 2000) { 
       // Water in dirty container -> Pump 1 fills the filtration tank
-      digitalWrite(RELAY1_PIN, RELAY_ON);
+      setRelay(RELAY1_PIN, true);
       
       // Stop Relay 2 while Relay 1 is furiously pumping
-      digitalWrite(RELAY2_PIN, RELAY_OFF);
+      setRelay(RELAY2_PIN, false);
       relay2State = false;
     } else {
       // Dirty container empty -> Relay 1 OFF
-      digitalWrite(RELAY1_PIN, RELAY_OFF);
+      setRelay(RELAY1_PIN, false);
 
       // Relay 2 pumps every 10 seconds (10s ON, 10s OFF cycle) to gently move filtered water
       unsigned long currentMillis = millis();
       if (currentMillis - relay2Timer >= 10000) {
         relay2Timer = currentMillis;
         relay2State = !relay2State; // Toggle state
-        digitalWrite(RELAY2_PIN, relay2State ? RELAY_ON : RELAY_OFF);
+        setRelay(RELAY2_PIN, relay2State);
       }
     }
   }
@@ -140,8 +152,8 @@ void loop() {
     float batteryVoltage = readBatteryVoltage();
     int batteryLevel = calculateBatteryLevel(batteryVoltage);
     
-    String relay1Status = (digitalRead(RELAY1_PIN) == RELAY_ON) ? "on" : "off";
-    String relay2Status = (digitalRead(RELAY2_PIN) == RELAY_ON) ? "on" : "off";
+    String relay1Status = isRelay1On ? "on" : "off";
+    String relay2Status = isRelay2On ? "on" : "off";
 
     // Upload to backend
     uploadSensorData(turbidity, ph, batteryVoltage, batteryLevel, ws1Value,
@@ -310,8 +322,8 @@ void executeCommand(String command, JsonObject params) {
   } else if (command == "stop") {
     Serial.println("Dashboard Command: SYSTEM STOPPED! Halting all physical pumps.");
     isSystemActive = false;
-    digitalWrite(RELAY1_PIN, RELAY_OFF);
-    digitalWrite(RELAY2_PIN, RELAY_OFF);
+    setRelay(RELAY1_PIN, false);
+    setRelay(RELAY2_PIN, false);
 
   } else if (command == "mode") {
     String mode = params["mode"];
