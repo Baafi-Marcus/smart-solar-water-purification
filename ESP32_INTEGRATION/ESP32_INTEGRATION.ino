@@ -17,6 +17,7 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 
 // ========================================
 // CONFIGURATION
@@ -199,10 +200,13 @@ void uploadSensorData(float turbidity, float ph, float batteryVoltage,
     return;
   }
 
+  WiFiClientSecure client;
+  client.setInsecure(); // This allows HTTPS connections without a certificate
+
   HTTPClient http;
   String url = String(apiBaseUrl) + "/api/upload";
 
-  http.begin(url);
+  http.begin(client, url);
   http.addHeader("Content-Type", "application/json");
 
   // Create JSON payload
@@ -241,10 +245,13 @@ void checkForCommands() {
     return;
   }
 
+  WiFiClientSecure client;
+  client.setInsecure(); // This allows HTTPS connections without a certificate
+
   HTTPClient http;
   String url = String(apiBaseUrl) + "/api/fetch";
 
-  http.begin(url);
+  http.begin(client, url);
   int httpResponseCode = http.GET();
 
   if (httpResponseCode > 0) {
