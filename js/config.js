@@ -3,10 +3,8 @@
 // ========================================
 
 const CONFIG = {
-  // API Base URL - Can be overridden by environment variable
-  // For local development with Vercel: http://localhost:3000
-  // For production: https://your-project.vercel.app
-  API_BASE_URL: window.ENV?.API_BASE_URL || 'http://localhost:3000',
+  // API Base URL - Pointing directly to your live Vercel backend
+  API_BASE_URL: window.ENV?.API_BASE_URL || 'https://smart-solar-water-purification.vercel.app',
 
   // Polling intervals (in milliseconds)
   POLLING_INTERVAL: {
