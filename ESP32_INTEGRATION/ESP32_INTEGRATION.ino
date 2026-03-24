@@ -19,6 +19,8 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
+WiFiClientSecure secureClient;
+
 // ========================================
 // CONFIGURATION
 // ========================================
@@ -63,6 +65,9 @@ void setup() {
   digitalWrite(RELAY1_PIN, LOW);
   pinMode(RELAY2_PIN, OUTPUT);
   digitalWrite(RELAY2_PIN, LOW);
+
+  // Configure Secure Client
+  secureClient.setInsecure();
 
   // Connect to Wi-Fi
   connectWiFi();
@@ -200,13 +205,10 @@ void uploadSensorData(float turbidity, float ph, float batteryVoltage,
     return;
   }
 
-  WiFiClientSecure client;
-  client.setInsecure(); // This allows HTTPS connections without a certificate
-
   HTTPClient http;
   String url = String(apiBaseUrl) + "/api/upload";
 
-  http.begin(client, url);
+  http.begin(secureClient, url);
   http.addHeader("Content-Type", "application/json");
 
   // Create JSON payload
@@ -245,13 +247,10 @@ void checkForCommands() {
     return;
   }
 
-  WiFiClientSecure client;
-  client.setInsecure(); // This allows HTTPS connections without a certificate
-
   HTTPClient http;
   String url = String(apiBaseUrl) + "/api/fetch";
 
-  http.begin(client, url);
+  http.begin(secureClient, url);
   int httpResponseCode = http.GET();
 
   if (httpResponseCode > 0) {
