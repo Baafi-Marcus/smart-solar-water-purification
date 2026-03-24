@@ -48,6 +48,7 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 // Pumping Logic State
 unsigned long relay2Timer = 0;
 bool relay2State = false;
+bool isSystemActive = false; // Master lock for dashboard Start/Stop
 
 // Dosing Configuration (Manual, See Monitoring Dashboard for Calculator)
 // Target Residual standard: 0.5 mg/L per DGS-175
@@ -91,7 +92,14 @@ void loop() {
   int ws1Value = analogRead(WATER_SENSOR1_PIN); // Dirty Tank
   int ws2Value = analogRead(WATER_SENSOR2_PIN); // Clean Tank
 
-  if (ws2Value > 2000) {
+  if (!isSystemActive) {
+    // Master Safety: User has not clicked "Start Purification" yet!
+    // Force all relays OFF and ignore sensors until activated.
+    digitalWrite(RELAY1_PIN, RELAY_OFF);
+    digitalWrite(RELAY2_PIN, RELAY_OFF);
+    relay2State = false;
+    
+  } else if (ws2Value > 2000) {
     // SYSTEM FULL: The Clean Tank has reached the maximum water level!
     // Shut off all pumps immediately to prevent overflow.
     digitalWrite(RELAY1_PIN, RELAY_OFF);
@@ -99,7 +107,7 @@ void loop() {
     relay2State = false;
     
   } else {
-    // SYSTEM NOT FULL: Proceed with normal purification flow
+    // SYSTEM ACTIVE & NOT FULL: Proceed with normal purification flow
 
     if (ws1Value > 2000) { 
       // Water in dirty container -> Pump 1 fills the filtration tank
@@ -296,11 +304,12 @@ void checkForCommands() {
 
 void executeCommand(String command, JsonObject params) {
   if (command == "start") {
-    Serial.println("Manual override: Starting Relay 1...");
-    digitalWrite(RELAY1_PIN, RELAY_ON);
+    Serial.println("Dashboard Command: SYSTEM STARTED! Sensors are now automating the pumps.");
+    isSystemActive = true;
 
   } else if (command == "stop") {
-    Serial.println("Manual override: Stopping Relay 1...");
+    Serial.println("Dashboard Command: SYSTEM STOPPED! Halting all physical pumps.");
+    isSystemActive = false;
     digitalWrite(RELAY1_PIN, RELAY_OFF);
     digitalWrite(RELAY2_PIN, RELAY_OFF);
 
