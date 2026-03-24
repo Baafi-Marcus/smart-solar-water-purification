@@ -42,6 +42,9 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 #define RELAY1_PIN 14        // D14 (Dirty to Filter Pump)
 #define RELAY2_PIN 27        // D27 (Filter to Clean Pump)
 
+#define RELAY_ON LOW         // Active LOW for these specific relay modules
+#define RELAY_OFF HIGH       // Active LOW means HIGH is OFF
+
 // Pumping Logic State
 unsigned long relay2Timer = 0;
 bool relay2State = false;
@@ -62,9 +65,9 @@ void setup() {
 
   // Initialize pins
   pinMode(RELAY1_PIN, OUTPUT);
-  digitalWrite(RELAY1_PIN, LOW);
+  digitalWrite(RELAY1_PIN, RELAY_OFF);
   pinMode(RELAY2_PIN, OUTPUT);
-  digitalWrite(RELAY2_PIN, LOW);
+  digitalWrite(RELAY2_PIN, RELAY_OFF);
 
   // Configure Secure Client
   secureClient.setInsecure();
@@ -90,21 +93,21 @@ void loop() {
 
   if (ws1Value > 2000) { 
     // Water in dirty container -> Pump to filter
-    digitalWrite(RELAY1_PIN, HIGH);
+    digitalWrite(RELAY1_PIN, RELAY_ON);
     
     // Stop Relay 2 while Relay 1 is pumping
-    digitalWrite(RELAY2_PIN, LOW);
+    digitalWrite(RELAY2_PIN, RELAY_OFF);
     relay2State = false;
   } else {
     // Dirty container empty -> Relay 1 OFF
-    digitalWrite(RELAY1_PIN, LOW);
+    digitalWrite(RELAY1_PIN, RELAY_OFF);
 
     // Relay 2 pumps every 10 seconds (10s ON, 10s OFF cycle)
     unsigned long currentMillis = millis();
     if (currentMillis - relay2Timer >= 10000) {
       relay2Timer = currentMillis;
       relay2State = !relay2State; // Toggle state
-      digitalWrite(RELAY2_PIN, relay2State ? HIGH : LOW);
+      digitalWrite(RELAY2_PIN, relay2State ? RELAY_ON : RELAY_OFF);
     }
   }
 
@@ -118,8 +121,8 @@ void loop() {
     float batteryVoltage = readBatteryVoltage();
     int batteryLevel = calculateBatteryLevel(batteryVoltage);
     
-    String relay1Status = digitalRead(RELAY1_PIN) ? "on" : "off";
-    String relay2Status = digitalRead(RELAY2_PIN) ? "on" : "off";
+    String relay1Status = (digitalRead(RELAY1_PIN) == RELAY_ON) ? "on" : "off";
+    String relay2Status = (digitalRead(RELAY2_PIN) == RELAY_ON) ? "on" : "off";
 
     // Upload to backend
     uploadSensorData(turbidity, ph, batteryVoltage, batteryLevel, ws1Value,
@@ -283,11 +286,12 @@ void checkForCommands() {
 void executeCommand(String command, JsonObject params) {
   if (command == "start") {
     Serial.println("Manual override: Starting Relay 1...");
-    digitalWrite(RELAY1_PIN, HIGH);
+    digitalWrite(RELAY1_PIN, RELAY_ON);
 
   } else if (command == "stop") {
     Serial.println("Manual override: Stopping Relay 1...");
-    digitalWrite(RELAY1_PIN, LOW);
+    digitalWrite(RELAY1_PIN, RELAY_OFF);
+    digitalWrite(RELAY2_PIN, RELAY_OFF);
 
   } else if (command == "mode") {
     String mode = params["mode"];
