@@ -103,6 +103,7 @@ void loop() {
   // ===== WATER TRANSFER LOGIC =====
   int ws1Value = analogRead(WATER_SENSOR1_PIN); // Dirty Tank
   int ws2Value = analogRead(WATER_SENSOR2_PIN); // Clean Tank
+  String currentMessage = "System Locked";
 
   if (!isSystemActive) {
     // Master Safety: User has not clicked "Start Purification" yet!
@@ -110,6 +111,7 @@ void loop() {
     setRelay(RELAY1_PIN, false);
     setRelay(RELAY2_PIN, false);
     relay2State = false;
+    currentMessage = "System Locked / Awaiting Start";
     
   } else if (ws2Value > 2000) {
     // SYSTEM FULL: The Clean Tank has reached the maximum water level!
@@ -117,6 +119,7 @@ void loop() {
     setRelay(RELAY1_PIN, false);
     setRelay(RELAY2_PIN, false);
     relay2State = false;
+    currentMessage = "Clean Tank Full / Safe Overflow Halt";
     
   } else {
     // SYSTEM ACTIVE & NOT FULL: Proceed with normal purification flow
@@ -128,9 +131,11 @@ void loop() {
       // Stop Relay 2 while Relay 1 is furiously pumping
       setRelay(RELAY2_PIN, false);
       relay2State = false;
+      currentMessage = "Pumping Dirty Water to Filter";
     } else {
       // Dirty container empty -> Relay 1 OFF
       setRelay(RELAY1_PIN, false);
+      currentMessage = "Awaiting Dirty Water (System Active)";
 
       // Relay 2 pumps every 10 seconds (10s ON, 10s OFF cycle) to gently move filtered water
       unsigned long currentMillis = millis();
@@ -157,7 +162,7 @@ void loop() {
 
     // Upload to backend
     uploadSensorData(turbidity, ph, batteryVoltage, batteryLevel, ws1Value,
-                     ws2Value, relay1Status, relay2Status);
+                     ws2Value, relay1Status, relay2Status, currentMessage);
 
     // Check for commands
     checkForCommands();
@@ -233,7 +238,7 @@ int calculateBatteryLevel(float voltage) {
 // ========================================
 
 void uploadSensorData(float turbidity, float ph, float batteryVoltage,
-                      int batteryLevel, int ws1, int ws2, String relay1Status, String relay2Status) {
+                      int batteryLevel, int ws1, int ws2, String r1, String r2, String sysMsg) {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Cannot upload: No Wi-Fi connection");
     return;
@@ -253,8 +258,9 @@ void uploadSensorData(float turbidity, float ph, float batteryVoltage,
   doc["batteryLevel"] = batteryLevel;
   doc["waterSensor1"] = ws1;
   doc["waterSensor2"] = ws2;
-  doc["relay1Status"] = relay1Status;
-  doc["relay2Status"] = relay2Status;
+  doc["relay1Status"] = r1;
+  doc["relay2Status"] = r2;
+  doc["systemMessage"] = sysMsg;
 
   String jsonString;
   serializeJson(doc, jsonString);

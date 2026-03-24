@@ -54,7 +54,7 @@ class Dashboard {
     // ========================================
 
     updateUI(status) {
-        this.updateSystemStatus(status.systemStatus);
+        this.updateSystemStatus(status.systemStatus, status.systemMessage);
         this.updateBatteryLevel(status.batteryLevel);
         this.updateWaterQuality(status.waterQuality);
         this.updateWaterLevel(status.waterSensor1);
@@ -62,7 +62,7 @@ class Dashboard {
         this.updateControlButtons(status.systemStatus);
     }
 
-    updateSystemStatus(systemStatus) {
+    updateSystemStatus(systemStatus, systemMessage) {
         const statusDisplay = document.getElementById('statusDisplay');
         const statusLabel = document.getElementById('statusLabel');
         const statusMessage = document.getElementById('statusMessage');
@@ -74,17 +74,17 @@ class Dashboard {
             case 'idle':
                 statusDisplay.classList.add('status-display-idle');
                 statusLabel.textContent = 'IDLE';
-                statusMessage.textContent = 'System ready';
+                statusMessage.textContent = systemMessage || 'System ready';
                 break;
             case 'purifying':
                 statusDisplay.classList.add('status-display-active');
                 statusLabel.textContent = 'PURIFYING';
-                statusMessage.textContent = 'Purification in progress';
+                statusMessage.textContent = systemMessage || 'Purification in progress';
                 break;
             case 'alert':
                 statusDisplay.classList.add('status-display-alert');
                 statusLabel.textContent = 'ALERT';
-                statusMessage.textContent = 'Attention required';
+                statusMessage.textContent = systemMessage || 'Attention required';
                 break;
         }
     }

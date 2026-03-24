@@ -51,9 +51,15 @@ module.exports = (req, res) => {
 
         // Check if purification completed (Relay 2 cycle complete or dirty empty)
         // This would need more sophisticated state tracking in production
-        if (sensorData.relay1Status === 'off' && sensorData.relay2Status === 'off' && sensorData.turbidity < 5) {
-            // Potentially purification completed
-            // In production, you'd track previous state
+        if (sensorData.systemMessage) {
+            updateSystemStatus({ message: sensorData.systemMessage });
+            
+            // Auto sync the visual color badge based on ESP32 string
+            if (sensorData.systemMessage.includes('Pumping')) {
+                updateSystemStatus({ status: 'purifying' });
+            } else if (sensorData.systemMessage.includes('Locked') || sensorData.systemMessage.includes('Awaiting')) {
+                updateSystemStatus({ status: 'idle' });
+            }
         }
 
         // Return success response

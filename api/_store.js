@@ -23,6 +23,7 @@ const store = {
         status: 'idle', // 'idle', 'purifying', 'alert'
         mode: 'auto', // 'auto', 'manual'
         waterQuality: 'good', // 'good', 'not_safe'
+        message: 'System ready'
     },
 
     // Command queue for ESP32
@@ -160,6 +161,7 @@ function getSystemState() {
         ...store.systemStatus,
         ...store.sensorData,
         systemStatus: store.systemStatus.status,
+        systemMessage: store.systemStatus.message,
         mode: store.systemStatus.mode,
         waterQuality: store.systemStatus.waterQuality
     };
