@@ -13,6 +13,25 @@ Your backend API is live at:
 
 ---
 
+## 4. Physical Architecture (3-Container Setup)
+
+The system utilizes a 3-stage physical bucket layout designed to safely pump, filter, and monitor water:
+
+### Container 1: The Raw Dirty Tank
+*   **Turbidity Sensor:** Mounted near the bottom to measure raw water muddiness.
+*   **Water Sensor 1:** Inside tank to detect presence of raw water (`D5`).
+*   **Pump 1:** Submerged/connected here. Moves raw water up into Container 2.
+
+### Container 2: The Filtration Tower
+*   **Contents:** Sand, Activated Charcoal, Gravel, and Cotton.
+*   *Note: No electronic sensors are placed inside the wet filter media.*
+*   **Pump 2:** Positioned at the very bottom catch-basin of the filter to gently pull filtered water and move it to Container 3.
+
+### Container 3: The Clean / Treatment Tank
+*   **pH Sensor:** Mounted here to verify final filtered water is chemically balanced.
+*   **Water Sensor 2:** Mounted near the rim of the tank (`D18`). This acts as an **Overflow Prevention** sensor. When water touches it, the entire system stops.
+*   **Chlorine Dosing:** This is where manual chlorine dosing tablets are dropped based on the website calculator.
+
 ## 📋 What You Need
 
 ### Hardware

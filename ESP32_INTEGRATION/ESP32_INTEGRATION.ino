@@ -88,26 +88,37 @@ void loop() {
   }
 
   // ===== WATER TRANSFER LOGIC =====
-  int ws1Value = analogRead(WATER_SENSOR1_PIN);
-  int ws2Value = analogRead(WATER_SENSOR2_PIN);
+  int ws1Value = analogRead(WATER_SENSOR1_PIN); // Dirty Tank
+  int ws2Value = analogRead(WATER_SENSOR2_PIN); // Clean Tank
 
-  if (ws1Value > 2000) { 
-    // Water in dirty container -> Pump to filter
-    digitalWrite(RELAY1_PIN, RELAY_ON);
-    
-    // Stop Relay 2 while Relay 1 is pumping
+  if (ws2Value > 2000) {
+    // SYSTEM FULL: The Clean Tank has reached the maximum water level!
+    // Shut off all pumps immediately to prevent overflow.
+    digitalWrite(RELAY1_PIN, RELAY_OFF);
     digitalWrite(RELAY2_PIN, RELAY_OFF);
     relay2State = false;
+    
   } else {
-    // Dirty container empty -> Relay 1 OFF
-    digitalWrite(RELAY1_PIN, RELAY_OFF);
+    // SYSTEM NOT FULL: Proceed with normal purification flow
 
-    // Relay 2 pumps every 10 seconds (10s ON, 10s OFF cycle)
-    unsigned long currentMillis = millis();
-    if (currentMillis - relay2Timer >= 10000) {
-      relay2Timer = currentMillis;
-      relay2State = !relay2State; // Toggle state
-      digitalWrite(RELAY2_PIN, relay2State ? RELAY_ON : RELAY_OFF);
+    if (ws1Value > 2000) { 
+      // Water in dirty container -> Pump 1 fills the filtration tank
+      digitalWrite(RELAY1_PIN, RELAY_ON);
+      
+      // Stop Relay 2 while Relay 1 is furiously pumping
+      digitalWrite(RELAY2_PIN, RELAY_OFF);
+      relay2State = false;
+    } else {
+      // Dirty container empty -> Relay 1 OFF
+      digitalWrite(RELAY1_PIN, RELAY_OFF);
+
+      // Relay 2 pumps every 10 seconds (10s ON, 10s OFF cycle) to gently move filtered water
+      unsigned long currentMillis = millis();
+      if (currentMillis - relay2Timer >= 10000) {
+        relay2Timer = currentMillis;
+        relay2State = !relay2State; // Toggle state
+        digitalWrite(RELAY2_PIN, relay2State ? RELAY_ON : RELAY_OFF);
+      }
     }
   }
 
