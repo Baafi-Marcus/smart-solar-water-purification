@@ -42,8 +42,8 @@ const char *apiBaseUrl = "https://smart-solar-water-purification.vercel.app";
 #define RELAY1_PIN 14        // D14 (Dirty to Filter Pump)
 #define RELAY2_PIN 27        // D27 (Filter to Clean Pump)
 
-#define RELAY_ON LOW         // Active LOW for these specific relay modules
-#define RELAY_OFF HIGH       // Active LOW means HIGH is OFF
+#define RELAY_ON HIGH        // Standard Active HIGH
+#define RELAY_OFF LOW        // Standard Active HIGH means LOW is OFF
 
 // Pumping Logic State
 unsigned long relay2Timer = 0;
