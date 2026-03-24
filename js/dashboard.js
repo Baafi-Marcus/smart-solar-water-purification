@@ -179,14 +179,14 @@ class Dashboard {
 
     async handleStart() {
         try {
-            this.showFeedback('Starting purification...', 'info');
+            this.showFeedback('Unlocking system...', 'info');
             const response = await api.sendCommand('start');
 
             if (response.success) {
-                this.showFeedback('Purification started successfully', 'success');
+                this.showFeedback('Command Sent: Sensors are now active!', 'success');
                 setTimeout(() => this.loadStatus(), 1000);
             } else {
-                this.showFeedback('Failed to start purification', 'error');
+                this.showFeedback('Failed to activate sensors', 'error');
             }
         } catch (error) {
             console.error('Start command failed:', error);
@@ -196,14 +196,14 @@ class Dashboard {
 
     async handleStop() {
         try {
-            this.showFeedback('Stopping purification...', 'info');
+            this.showFeedback('Locking system...', 'info');
             const response = await api.sendCommand('stop');
 
             if (response.success) {
-                this.showFeedback('Purification stopped successfully', 'success');
+                this.showFeedback('Command Sent: System Locked!', 'success');
                 setTimeout(() => this.loadStatus(), 1000);
             } else {
-                this.showFeedback('Failed to stop purification', 'error');
+                this.showFeedback('Failed to lock system', 'error');
             }
         } catch (error) {
             console.error('Stop command failed:', error);
